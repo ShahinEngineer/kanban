@@ -1,0 +1,46 @@
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    width: 100%;
+}
+
+.input-field__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.input-field__input {
+    width: 100%;
+    padding: 0.625rem var(--space-3);
+    /* 10px 12px */
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-card);
+    color: var(--text-main);
+    transition: var(--transition);
+    font-size: 0.875rem;
+}
+
+.input-field__input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.input-field__input--error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 1px var(--danger);
+}
+
+.input-field__textarea {
+    min-height: 80px;
+    /* Approximately 3 lines */
+    resize: vertical;
+}
+
+.input-field__error {
+    font-size: 0.75rem;
+    color: var(--danger);
+}
