@@ -1,12 +1,36 @@
 import React, { createContext, useContext, useReducer, type ReactNode } from 'react';
-import { type BoardData, type Task } from '../types';
+import { type BoardData, type Task, type Column } from '../types';
 import { initialData } from '../data/mock';
 
 type Action =
     | { type: 'MOVE_TASK'; payload: { taskId: string; sourceColId: string; destColId: string; sourceIndex: number; destIndex: number } }
-    | { type: 'ADD_TASK'; payload: { columnId: string; content: string } }
+    | {
+        type: 'ADD_TASK';
+        payload: {
+            columnId: string;
+            content: string;
+            description?: string;
+            estimationTime?: string;
+            projectId?: string;
+            startAt?: string;
+            endAt?: string;
+            assignTo?: string;
+        }
+    }
     | { type: 'DELETE_TASK'; payload: { taskId: string; columnId: string } }
-    | { type: 'UPDATE_TASK'; payload: { taskId: string; content: string } }
+    | {
+        type: 'UPDATE_TASK';
+        payload: {
+            taskId: string;
+            content: string;
+            description?: string;
+            estimationTime?: string;
+            projectId?: string;
+            startAt?: string;
+            endAt?: string;
+            assignTo?: string;
+        }
+    }
     | { type: 'ADD_COLUMN'; payload: { title: string } };
 
 interface BoardContextType {
@@ -55,9 +79,19 @@ const boardReducer = (state: BoardData, action: Action): BoardData => {
             };
         }
         case 'ADD_TASK': {
-            const { columnId, content } = action.payload;
+            const { columnId, content, description, estimationTime, projectId, startAt, endAt, assignTo } = action.payload;
             const newTaskId = `task-${Date.now()}`;
-            const newTask: Task = { id: newTaskId, content, columnId };
+            const newTask: Task = {
+                id: newTaskId,
+                content,
+                columnId,
+                description,
+                estimationTime,
+                projectId,
+                startAt,
+                endAt,
+                assignTo,
+            };
 
             const column = state.columns[columnId];
             const updatedTaskIds = [...column.taskIds, newTaskId];
@@ -69,6 +103,41 @@ const boardReducer = (state: BoardData, action: Action): BoardData => {
                     ...state.columns,
                     [columnId]: { ...column, taskIds: updatedTaskIds }
                 }
+            };
+        }
+        case 'UPDATE_TASK': {
+            const { taskId, content, description, estimationTime, projectId, startAt, endAt, assignTo } = action.payload;
+            const task = state.tasks[taskId];
+            const updatedTask = {
+                ...task,
+                content,
+                description,
+                estimationTime,
+                projectId,
+                startAt,
+                endAt,
+                assignTo,
+            };
+
+            return {
+                ...state,
+                tasks: { ...state.tasks, [taskId]: updatedTask },
+            };
+        }
+        case 'DELETE_TASK': {
+            const { taskId, columnId } = action.payload;
+            const column = state.columns[columnId];
+            const newTaskIds = column.taskIds.filter((id) => id !== taskId);
+            const newTasks = { ...state.tasks };
+            delete newTasks[taskId];
+
+            return {
+                ...state,
+                columns: {
+                    ...state.columns,
+                    [columnId]: { ...column, taskIds: newTaskIds },
+                },
+                tasks: newTasks,
             };
         }
         case 'ADD_COLUMN': {

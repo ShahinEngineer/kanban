@@ -2,6 +2,12 @@ export interface Task {
     id: string;
     content: string;
     columnId: string;
+    description?: string;
+    estimationTime?: string;
+    projectId?: string;
+    startAt?: string;
+    endAt?: string;
+    assignTo?: string;
 }
 
 export interface Column {

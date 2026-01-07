@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { KanbanSquare, LayoutDashboard, Settings, User, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, Settings, User, Bell } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from './components/ui/Button';
 import { Column } from './components/ui/Column';
@@ -7,16 +7,28 @@ import { Card } from './components/ui/Card';
 import { Modal } from './components/ui/Modal';
 import { Input, Textarea } from './components/ui/Input';
 import { useBoard } from './context/BoardContext';
+import { LoginPage } from './components/layout/LoginPage';
 import './components/layout/Layout.css';
 
+import logo from './assets/logo.png';
+
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('board');
   const { state, dispatch } = useBoard();
 
-  // Task Modal State
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [currentColumnId, setCurrentColumnId] = useState<string | null>(null);
-  const newTaskContentRef = useRef<HTMLTextAreaElement>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [newTaskData, setNewTaskData] = useState({
+    content: '',
+    description: '',
+    estimationTime: '',
+    projectId: '',
+    startAt: '',
+    endAt: '',
+    assignTo: ''
+  });
 
   const onDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -48,26 +60,84 @@ function App() {
   };
 
   const handleCreateTask = () => {
-    setCurrentColumnId("col-1")
-    console.log(currentColumnId);
-    if (!newTaskContentRef.current?.value.trim()) return;
+    // If we have a specific column ID from clicking "+", use it. 
+    // Otherwise default to the first column or handle error.
+    // The currentColumnId might be null if opened via other means, but handleAddClick sets it.
+    // If currentColumnId is null, we can default to the first column in order.
+    const targetColumnId = currentColumnId || state.columnOrder[0];
 
-    dispatch({
-      type: 'ADD_TASK',
-      payload: {
-        columnId: "col-1",
-        content: newTaskContentRef.current.value,
-      },
-    });
+    if (!newTaskData.content.trim()) return;
+
+    if (editingTaskId) {
+      dispatch({
+        type: 'UPDATE_TASK',
+        payload: {
+          taskId: editingTaskId,
+          content: newTaskData.content,
+          description: newTaskData.description,
+          estimationTime: newTaskData.estimationTime,
+          projectId: newTaskData.projectId,
+          startAt: newTaskData.startAt,
+          endAt: newTaskData.endAt,
+          assignTo: newTaskData.assignTo,
+        },
+      });
+    } else {
+      dispatch({
+        type: 'ADD_TASK',
+        payload: {
+          columnId: targetColumnId,
+          content: newTaskData.content,
+          description: newTaskData.description,
+          estimationTime: newTaskData.estimationTime,
+          projectId: newTaskData.projectId,
+          startAt: newTaskData.startAt,
+          endAt: newTaskData.endAt,
+          assignTo: newTaskData.assignTo,
+        },
+      });
+    }
 
     setIsTaskModalOpen(false);
+    setNewTaskData({
+      content: '',
+      description: '',
+      estimationTime: '',
+      projectId: '',
+      startAt: '',
+      endAt: '',
+      assignTo: ''
+    });
+    setEditingTaskId(null);
   };
 
-  const handleTaskClick = (taskId: string, taskContent: string) => {
-    console.log(taskId);
-    // newTaskContentRef.current!.value = taskContent;
+  const handleEditTask = (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    const task = state.tasks[taskId];
+    setNewTaskData({
+      content: task.content,
+      description: task.description || '',
+      estimationTime: task.estimationTime || '',
+      projectId: task.projectId || '',
+      startAt: task.startAt || '',
+      endAt: task.endAt || '',
+      assignTo: task.assignTo || ''
+    });
+    setEditingTaskId(taskId);
     setIsTaskModalOpen(true);
   };
+
+  const handleViewTask = (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    // For now, view is same as edit but we could make it read-only
+    handleEditTask(e, taskId);
+  };
+
+
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="app-layout">
@@ -75,8 +145,8 @@ function App() {
       <aside className="sidebar">
         <div className="sidebar__header">
           <div className="sidebar__title">
-            <KanbanSquare size={28} />
-            <span>BIM </span>
+            <img src={logo} alt="SolveX" style={{ height: '82px', width: '82px' }} />
+            <span>SolveX</span>
           </div>
         </div>
         <nav className="sidebar__nav">
@@ -159,9 +229,13 @@ function App() {
                                   // Lock to vertical axis if needed, typically auto handled
                                 }}
                               >
-                                <Card isDragging={snapshot.isDragging} onClick={() => handleTaskClick(task.id, task.content)}>
-                                  {task.content}
-                                </Card>
+                                <Card
+                                  task={task}
+                                  isDragging={snapshot.isDragging}
+                                  onClick={() => handleViewTask({ stopPropagation: () => { } } as React.MouseEvent, task.id)}
+                                  onEdit={handleEditTask}
+                                  onView={handleViewTask}
+                                />
                               </div>
                             )}
                           </Draggable>
@@ -193,14 +267,60 @@ function App() {
 
         <Modal
           isOpen={isTaskModalOpen}
-          onClose={() => setIsTaskModalOpen(false)}
-          title="Create Task"
+          onClose={() => { setIsTaskModalOpen(false); setEditingTaskId(null); }}
+          title={editingTaskId ? "Edit Task" : "Create Task"}
         >
           <div className="flex flex-col gap-4">
             <Textarea
-              ref={newTaskContentRef}
+              value={newTaskData.content}
+              onChange={(e) => setNewTaskData({ ...newTaskData, content: e.target.value })}
               placeholder="What needs to be done?"
               autoFocus
+              label="Task Content"
+            />
+
+            <Textarea
+              value={newTaskData.description}
+              onChange={(e) => setNewTaskData({ ...newTaskData, description: e.target.value })}
+              placeholder="Detailed description..."
+              label="Description"
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                value={newTaskData.estimationTime}
+                onChange={(e) => setNewTaskData({ ...newTaskData, estimationTime: e.target.value })}
+                placeholder="e.g., 2h, 3 days"
+                label="Estimation Time"
+              />
+              <Input
+                value={newTaskData.projectId}
+                onChange={(e) => setNewTaskData({ ...newTaskData, projectId: e.target.value })}
+                placeholder="Project ID"
+                label="Project ID"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="date"
+                value={newTaskData.startAt}
+                onChange={(e) => setNewTaskData({ ...newTaskData, startAt: e.target.value })}
+                label="Start At"
+              />
+              <Input
+                type="date"
+                value={newTaskData.endAt}
+                onChange={(e) => setNewTaskData({ ...newTaskData, endAt: e.target.value })}
+                label="End At"
+              />
+            </div>
+
+            <Input
+              value={newTaskData.assignTo}
+              onChange={(e) => setNewTaskData({ ...newTaskData, assignTo: e.target.value })}
+              placeholder="Assignee Name"
+              label="Assign To"
             />
             <div className="flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setIsTaskModalOpen(false)}>Cancel</Button>

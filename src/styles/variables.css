@@ -1,26 +1,39 @@
 :root {
   /* Colors */
-  --primary: #6366f1; /* Indigo 500 */
-  --primary-hover: #4f46e5; /* Indigo 600 */
-  --primary-light: #e0e7ff; /* Indigo 100 */
-  
-  --secondary: #ec4899; /* Pink 500 */
-  --secondary-hover: #db2777; /* Pink 600 */
+  --primary: #c2410c;
+  /* Orange 700 / Copper */
+  --primary-hover: #9a3412;
+  /* Orange 800 */
+  --primary-light: #ffedd5;
+  /* Orange 100 */
 
-  --bg-body: #f8fafc; /* Slate 50 */
+  --secondary: #ec4899;
+  /* Pink 500 */
+  --secondary-hover: #db2777;
+  /* Pink 600 */
+
+  --bg-body: #f8fafc;
+  /* Slate 50 */
   --bg-card: #ffffff;
-  --bg-column: #f1f5f9; /* Slate 100 */
+  --bg-column: #f1f5f9;
+  /* Slate 100 */
 
-  --text-main: #0f172a; /* Slate 900 */
-  --text-secondary: #64748b; /* Slate 500 */
-  --text-muted: #94a3b8; /* Slate 400 */
+  --text-main: #0f172a;
+  /* Slate 900 */
+  --text-secondary: #64748b;
+  /* Slate 500 */
+  --text-muted: #94a3b8;
+  /* Slate 400 */
 
-  --border: #e2e8f0; /* Slate 200 */
-  --border-focus: #6366f1;
+  --border: #e2e8f0;
+  /* Slate 200 */
+  --border-focus: #c2410c;
 
-  --danger: #ef4444; /* Red 500 */
-  --success: #22c55e; /* Green 500 */
-  
+  --danger: #ef4444;
+  /* Red 500 */
+  --success: #22c55e;
+  /* Green 500 */
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -45,7 +58,7 @@
 }
 
 /* Dark Mode (Future proofing) */
-@media (prefers-color-scheme: darkxxx) { 
+@media (prefers-color-scheme: darkxxx) {
   /* Intentionally disabled auto-dark for now to focus on light mode polish, 
      but structure is here. */
 }
