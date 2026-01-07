@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import logo from '../../assets/logo.png';
 import './LoginPage.css';
 
-interface LoginPageProps {
-    onLogin: () => void;
-}
-
-export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+export const LoginPage: React.FC = () => {
+    const { login } = useAuth();
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         // Simulate API call
         setTimeout(() => {
             setIsLoading(false);
-            onLogin();
+            login();
+            navigate('/');
         }, 800);
     };
 
